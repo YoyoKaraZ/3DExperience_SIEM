@@ -1,5 +1,65 @@
 const stompit = require('stompit');
 const WebSocket = require('ws');
+const axios = require('axios');
+
+
+
+
+// Define the base URL and document path
+const baseUrl = "https://R1132102747346-eu1-space.3dexperience.3ds.com/enovia";
+const documentPath = "/resources/v1/modeler/documents/A8FB660E096A25006751EE34000009B1";
+const securityContext = "VPLMCreator.Company Name.Common Space";
+
+
+const login = 'b3935f56-98da-4d38-ab19-6a44660cdb11'; // Replace with actual login
+const password = '$h~$7p4!:q=LtCuNHqG4G%q"'; // Replace with actual password
+
+
+const loginAndPassword = `${login}:${password}`;
+const base64EncodedString = Buffer.from(loginAndPassword).toString('base64');
+
+const basicAuthentication = `Basic ${base64EncodedString}`;
+
+async function fetchDocument(relativePath, source) {
+  try {
+    const response = await axios.get(`${source}${relativePath}`, {
+      headers: {
+        'Authorization': basicAuthentication, // Replace with your actual token
+        'Security-Context': securityContext,
+        'Accept': 'application/json'
+      }
+    });
+
+    // Access `data` array in the response
+    const documentData = response.data.data;
+
+    /*if (documentData && documentData.length > 0) {
+      documentData.forEach((item) => {
+        // Access the title from dataelements
+        const title = item.dataelements?.title;
+        // console.log('Title:', title);
+        // Add the title to the subject under data in the original jsonMessage
+        return title;
+      });      
+    } else {
+      console.log('No document data found.');
+      return null;
+    }*/
+
+    if (documentData && documentData.length > 0) {
+      const title = documentData[0]?.dataelements?.title; // Get the title from the first item
+      return title || null; // Return title or null if not found
+    } else {
+      console.log('No document data found.');
+      return null;
+    }
+
+  } catch (error) {
+    console.error("Error fetching document:", error.response ? error.response.data : error.message);
+    return null;
+  }
+}
+
 
 // Creation of the WebSocket server
 
@@ -21,8 +81,8 @@ const connectionHeaders = {
   "heart-beat": "50000,0",
   host: "/",
   'client-id': '3DSEpita-YKFL', // Unique Client ID
-  login: 'b3935f56-98da-4d38-ab19-6a44660cdb11', // Your CLM Agent login
-  passcode: '$h~$7p4!:q=LtCuNHqG4G%q"' // CLM Agent passcode
+  login: login, // Your CLM Agent login
+  passcode: password // CLM Agent passcode
 };
 
 // Define servers for failover
@@ -66,7 +126,7 @@ manager.connect((error, client, reconnect) => {
 
     // Read the message
 
-    message.readString('utf-8', (readError, body) => {
+    message.readString('utf-8', async (readError, body) => {
       if (readError) {
         console.error('Error reading message:', readError.message);
         return;
@@ -75,6 +135,18 @@ manager.connect((error, client, reconnect) => {
       try {
         // Attempt to parse the message as JSON and pretty-print
         const jsonMessage = JSON.parse(body);
+
+
+        const relativePath = jsonMessage?.data?.subject?.relativePath;
+        const source = jsonMessage?.data?.subject?.source;
+
+        const title = await fetchDocument(relativePath, source, jsonMessage);
+        
+        if (title) {
+          //console.log('Title after:', title);
+          jsonMessage.data.subject.title = title;
+        }
+        
         console.log('Received message:', JSON.stringify(jsonMessage, null, 2));
 
         // Broadcast the event to all WebSocket clients
@@ -87,6 +159,8 @@ manager.connect((error, client, reconnect) => {
       // Acknowledge the message
       client.ack(message);
     });
+
+    
 
 
   });
