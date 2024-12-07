@@ -4,21 +4,130 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>3DEXPERIENCE Events</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f9;
+      color: #333;
+    }
+    header {
+      background-color: #0078d4;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      margin: 0;
+      font-size: 2.5rem;
+    }
+    #events-container {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 20px;
+      background: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    h2 {
+      color: #0078d4;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #0078d4;
+      color: white;
+    }
+    td {
+      font-size: 1rem;
+    }
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    .error-row {
+      color: red;
+      text-align: center;
+      font-weight: bold;
+    }
+    footer {
+      text-align: center;
+      padding: 10px;
+      background-color: #333;
+      color: white;
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
-  <h1>3DEXPERIENCE Events</h1>
-  <div id="events"></div>
+  <header>
+    <h1>3DEXPERIENCE Events</h1>
+  </header>
+  <div id="events-container">
+    <h2>Live Event Updates</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Service Name</th>
+          <th>User</th>
+          <th>Title</th>
+          <th>Subject Type</th>
+        </tr>
+      </thead>
+      <tbody id="events">
+        <tr>
+          <td colspan="5" style="text-align: center; color: gray;">No events received yet</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <footer>
+    © 2024 3DEXPERIENCE Younes Kara Zaitri & Françoise Lapetite - All Rights Reserved
+  </footer>
   <script>
     // Connect to the WebSocket server
     const ws = new WebSocket('ws://localhost:4242');
 
-    // Display received events
+    // Display received events in the table
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      const eventDiv = document.getElementById('events');
-      const messageElement = document.createElement('pre');
-      messageElement.textContent = JSON.stringify(data, null, 2);
-      eventDiv.appendChild(messageElement);
+      const eventsTable = document.getElementById('events');
+
+      // Clear "No events received yet" message
+      if (eventsTable.rows.length === 1 && eventsTable.rows[0].cells[0].colSpan === 5) {
+        eventsTable.innerHTML = '';
+      }
+
+      // Extract the desired fields with safe fallback
+      const type = data?.type || 'N/A';
+      const serviceName = data?.data?.serviceName || 'N/A';
+      const user = data?.data?.user || 'N/A';
+      const title = data?.data?.subject?.title || 'N/A';
+      const subjectType = data?.data?.subject?.type || 'N/A';
+
+      // Create a new row in the table
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${type}</td>
+        <td>${serviceName}</td>
+        <td>${user}</td>
+        <td>${title}</td>
+        <td>${subjectType}</td>
+      `;
+      eventsTable.appendChild(row);
     };
 
     // Handle connection open
@@ -29,6 +138,12 @@
     // Handle connection errors
     ws.onerror = (error) => {
       console.error('WebSocket error:', error);
+      const eventsTable = document.getElementById('events');
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td colspan="5" class="error-row">Error connecting to WebSocket server</td>
+      `;
+      eventsTable.appendChild(row);
     };
 
     // Handle connection close
