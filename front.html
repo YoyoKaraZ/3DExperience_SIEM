@@ -3,178 +3,367 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>3DEXPERIENCE Events</title>
+  <title>3DEXPERIENCE SIEM</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    :root {
+      --bg-color: #f3e5f5;
+      --text-color: #333;
+      --table-bg: #f8eaf6;
+      --table-hover: #e1bee7;
+      --chart-bg: #fff;
+      --header-bg: linear-gradient(90deg, #8e44ad, #9b59b6);
+      --footer-bg: linear-gradient(90deg, #9b59b6, #8e44ad);
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #1e1e2f;
+      --text-color: #f0f0f0;
+      --table-bg: #2a2a3b;
+      --table-hover: #3c3c4e;
+      --chart-bg: #2a2a3b;
+      --header-bg: linear-gradient(90deg, #5a189a, #7b2cbf);
+      --footer-bg: linear-gradient(90deg, #7b2cbf, #5a189a);
+    }
+
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Poppins', sans-serif;
       margin: 0;
       padding: 0;
-      background-color: #f4f4f9;
-      color: #333;
+      background: var(--bg-color);
+      color: var(--text-color);
     }
+
     header {
-      background-color: #0078d4;
+      background: var(--header-bg);
       color: white;
       padding: 20px;
       text-align: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      position: relative;
     }
-    h1 {
+
+    header h1 {
       margin: 0;
       font-size: 2.5rem;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
     }
-    #events-container {
-      max-width: 1000px;
+
+    .dark-mode-toggle {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: var(--header-bg);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .dark-mode-toggle:hover {
+      background: var(--footer-bg);
+    }
+
+    #content-container {
+      max-width: 1200px;
       margin: 30px auto;
       padding: 20px;
-      background: #ffffff;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      background: var(--chart-bg);
+      border-radius: 15px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
     }
-    h2 {
-      color: #0078d4;
+
+    #content-container h2 {
+      color: var(--text-color);
       text-align: center;
       margin-bottom: 20px;
     }
+
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .chart-container {
+      text-align: center;
+      padding: 10px;
+      background: var(--table-bg);
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .chart-container canvas {
+      max-width: 100%;
+      height: 200px;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
+      margin-top: 20px;
+      border-radius: 10px;
+      overflow: hidden;
     }
-    table, th, td {
-      border: 1px solid #ddd;
-    }
-    th, td {
-      padding: 12px;
+
+    th {
+      background: var(--header-bg);
+      color: white;
+      font-weight: 600;
+      padding: 15px;
       text-align: left;
     }
-    th {
-      background-color: #0078d4;
-      color: white;
+
+    th select {
+      border: none;
+      background: #f9f9f9;
+      padding: 5px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      outline: none;
+      cursor: pointer;
     }
+
+    th select:hover {
+      background: #ececec;
+    }
+
     td {
-      font-size: 1rem;
+      background-color: var(--table-bg);
+      padding: 15px;
+      font-size: 0.95rem;
     }
-    tr:nth-child(even) {
-      background-color: #f9f9f9;
+
+    tr:nth-child(even) td {
+      background-color: var(--table-hover);
     }
-    .error-row {
-      color: red;
-      text-align: center;
-      font-weight: bold;
+
+    tr:hover td {
+      background-color: var(--table-hover);
+      transition: background-color 0.3s ease;
     }
+
     footer {
+      background: var(--footer-bg);
       text-align: center;
-      padding: 10px;
-      background-color: #333;
+      padding: 15px;
       color: white;
-      margin-top: 20px;
+      font-size: 0.9rem;
+      margin-top: 30px;
+      box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    footer span {
+      font-weight: bold;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
     }
   </style>
 </head>
-<body>
+<body data-theme="light">
   <header>
-    <h1>3DEXPERIENCE Events</h1>
+    <h1>3DEXPERIENCE SIEM Interface</h1>
+    <button class="dark-mode-toggle" onclick="toggleDarkMode()">Toggle Dark Mode</button>
   </header>
-  <div id="events-container">
-    <h2>Live Event Updates</h2>
+  <div id="content-container">
+    <h2>Live Event Insights</h2>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Service Name</th>
-          <th>User</th>
-          <th>Title</th>
-          <th>Subject Type</th>
-          <th>Creation Date</th>
-        </tr>
-      </thead>
-      <tbody id="events">
-        <tr>
-          <td colspan="6" style="text-align: center; color: gray;">No events received yet</td>
-        </tr>
-      </tbody>
-    </table>
+    <!-- Chart Section -->
+    <div class="chart-grid">
+      <div class="chart-container">
+        <h3>Events by User</h3>
+        <canvas id="userChart"></canvas>
+      </div>
+      <div class="chart-container">
+        <h3>Event Types</h3>
+        <canvas id="eventTypeChart"></canvas>
+      </div>
+      <div class="chart-container">
+        <h3>Event Trends</h3>
+        <canvas id="eventTrendChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Table Section -->
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Service Name</th>
+            <th>
+              <div style="display: flex; flex-direction: column;">
+                <span>User</span>
+                <select id="userDropdown">
+                  <option value="all">All Users</option>
+                </select>
+              </div>
+            </th>
+            <th>Title</th>
+            <th>Subject Type</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="events">
+          <tr>
+            <td colspan="6" style="text-align: center; color: gray;">No events received yet</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
   <footer>
-    © 2024 3DEXPERIENCE Younes Kara Zaitri & Françoise Lapetite - All Rights Reserved
+    © <span>2024 3DEXPERIENCE SIEM</span> - All Rights Reserved
   </footer>
   <script>
-    const eventsList = []; // Store all events locally for rendering
+    const eventsList = [];
+    const userEventCounts = {};
+    const eventTypeCounts = {};
+    const eventTrends = {};
+    const uniqueUsers = new Set();
 
-    // Connect to the WebSocket server
-    const ws = new WebSocket('ws://localhost:4242');
+    const userDropdown = document.getElementById('userDropdown');
+    const eventsTable = document.getElementById('events');
 
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      const eventsTable = document.getElementById('events');
+    // Initialize Charts
+    const userChart = new Chart(document.getElementById('userChart').getContext('2d'), {
+      type: 'bar',
+      data: { labels: [], datasets: [{ label: 'Events by User', data: [], backgroundColor: '#8e44ad' }] }
+    });
 
-      // Extract the desired fields with safe fallback
-      const type = data?.type || 'N/A';
-      const serviceName = data?.data?.serviceName || 'N/A';
-      const user = data?.data?.user || 'N/A';
-      const title = data?.data?.subject?.title || 'N/A';
-      const subjectType = data?.data?.subject?.type || 'N/A';
-      const creationDate = formatDate(data?.data?.eventTime) || 'N/A';
+    const eventTypeChart = new Chart(document.getElementById('eventTypeChart').getContext('2d'), {
+      type: 'pie',
+      data: { labels: [], datasets: [{ label: 'Event Types', data: [], backgroundColor: ['#ff4c4c', '#ffc107', '#4caf50'] }] }
+    });
 
-      // Save the event to the local list
-      eventsList.push({ type, serviceName, user, title, subjectType, creationDate });
+    const eventTrendChart = new Chart(document.getElementById('eventTrendChart').getContext('2d'), {
+      type: 'line',
+      data: { labels: [], datasets: [{ label: 'Event Trends', data: [], borderColor: '#3498db' }] }
+    });
 
-      // Render the events table with all data
-      renderTable(eventsList);
-    };
-
-    function formatDate(timestamp) {
-      if (!timestamp) return null;
-      const date = new Date(timestamp);
-      const day = String(date.getDate()).padStart(2, '0');
-      const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
-      const year = date.getFullYear();
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      const seconds = String(date.getSeconds()).padStart(2, '0');
-      return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
-    }
-
-    function renderTable(events) {
-      const eventsTable = document.getElementById('events');
-      eventsTable.innerHTML = ''; // Clear the table
-
-      if (events.length === 0) {
-        eventsTable.innerHTML = `<tr><td colspan="6" style="text-align: center; color: gray;">No events received yet</td></tr>`;
-        return;
-      }
-
-      events.forEach(event => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${event.type}</td>
-          <td>${event.serviceName}</td>
-          <td>${event.user}</td>
-          <td>${event.title}</td>
-          <td>${event.subjectType}</td>
-          <td>${event.creationDate}</td>
-        `;
-        eventsTable.appendChild(row);
+    // Populate dropdowns
+    function populateDropdowns() {
+      userDropdown.innerHTML = '<option value="all">All Users</option>';
+      uniqueUsers.forEach(user => {
+        const option = document.createElement('option');
+        option.value = user;
+        option.textContent = user;
+        userDropdown.appendChild(option);
       });
     }
 
-    // Handle WebSocket connection open
-    ws.onopen = () => {
-      console.log('Connected to WebSocket server');
+    function renderCharts() {
+      userChart.data.labels = Object.keys(userEventCounts);
+      userChart.data.datasets[0].data = Object.values(userEventCounts);
+      userChart.update();
+
+      eventTypeChart.data.labels = Object.keys(eventTypeCounts);
+      eventTypeChart.data.datasets[0].data = Object.values(eventTypeCounts);
+      eventTypeChart.update();
+
+      eventTrendChart.data.labels = Object.keys(eventTrends);
+      eventTrendChart.data.datasets[0].data = Object.values(eventTrends);
+      eventTrendChart.update();
+    }
+
+    function renderTable() {
+  // Get the selected user from the dropdown
+  const selectedUser = userDropdown.value;
+
+  // Clear the table
+  eventsTable.innerHTML = '';
+
+  // Filter the events based on the selected user
+  const filteredEvents = eventsList.filter(event => {
+    // If "All Users" is selected, show all events
+    return selectedUser === 'all' || event.user === selectedUser;
+  });
+
+  // If no events match the filter, display a message
+  if (filteredEvents.length === 0) {
+    eventsTable.innerHTML = `<tr><td colspan="6" style="text-align: center; color: gray;">No events match the selected user</td></tr>`;
+    return;
+  }
+
+  // Populate the table with filtered events
+  filteredEvents.forEach(event => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${event.type}</td>
+      <td>${event.serviceName}</td>
+      <td>${event.user}</td>
+      <td>${event.title}</td>
+      <td>${event.subjectType}</td>
+      <td>${event.creationDate}</td>
+    `;
+    eventsTable.appendChild(row);
+  });
+}
+
+// Add an event listener to the user dropdown
+userDropdown.addEventListener('change', renderTable);
+
+    const ws = new WebSocket('ws://100.85.82.49:4242');
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      const type = data?.type || 'Unknown';
+      const user = data?.data?.user || 'N/A';
+      const serviceName = data?.data?.serviceName || 'N/A';
+      const title = data?.data?.subject?.title || 'N/A';
+      const timestamp = data?.data?.eventTime;
+      const formattedTimestamp = new Date(timestamp).toLocaleString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+
+      const twoHourBucket = get2HourBucket(timestamp);
+      eventTrends[twoHourBucket] = (eventTrends[twoHourBucket] || 0) + 1;
+
+      eventsList.push({
+        type,
+        serviceName,
+        user,
+        title,
+        subjectType: data?.data?.subject?.type || 'N/A',
+        creationDate: formattedTimestamp
+      });
+
+      userEventCounts[user] = (userEventCounts[user] || 0) + 1;
+      eventTypeCounts[type] = (eventTypeCounts[type] || 0) + 1;
+
+      uniqueUsers.add(user);
+
+      populateDropdowns();
+      renderCharts();
+      renderTable();
     };
 
-    // Handle connection errors
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-      const eventsTable = document.getElementById('events');
-      eventsTable.innerHTML = `<tr><td colspan="6" class="error-row">Error connecting to WebSocket server</td></tr>`;
-    };
+    function toggleDarkMode() {
+      const theme = document.body.getAttribute('data-theme');
+      document.body.setAttribute('data-theme', theme === 'dark' ? 'light' : 'dark');
+      localStorage.setItem('theme', theme === 'dark' ? 'light' : 'dark');
+    }
 
-    // Handle WebSocket connection close
-    ws.onclose = () => {
-      console.log('WebSocket connection closed');
-    };
+    function get2HourBucket(timestamp) {
+      const date = new Date(timestamp);
+      const hours = date.getHours();
+      const startHour = Math.floor(hours / 2) * 2; // Round down to nearest multiple of 2
+      const endHour = startHour + 2;
+
+      // Format the interval as `HH:MM - HH:MM`
+      return `${startHour.toString().padStart(2, '0')}:00–${endHour.toString().padStart(2, '0')}:00`;
+    }
+
+    document.body.setAttribute('data-theme', localStorage.getItem('theme') || 'light');
   </script>
 </body>
 </html>
