@@ -5,6 +5,7 @@ const axios = require('axios');
 
 
 
+
 // Define the base URL and document path
 const baseUrl = "https://R1132102747346-eu1-space.3dexperience.3ds.com/enovia";
 const documentPath = "/resources/v1/modeler/documents/A8FB660E096A25006751EE34000009B1";
@@ -19,6 +20,9 @@ const loginAndPassword = `${login}:${password}`;
 const base64EncodedString = Buffer.from(loginAndPassword).toString('base64');
 
 const basicAuthentication = `Basic ${base64EncodedString}`;
+
+const messageHistory = [];
+
 
 async function fetchDocument(relativePath, source) {
   try {
@@ -149,6 +153,11 @@ manager.connect((error, client, reconnect) => {
         
         console.log('Received message:', JSON.stringify(jsonMessage, null, 2));
 
+
+        // Add the message to the history
+        messageHistory.push(jsonMessage);
+
+
         // Broadcast the event to all WebSocket clients
         broadcast(JSON.stringify(jsonMessage));
       } catch (parseError) {
@@ -177,6 +186,13 @@ manager.connect((error, client, reconnect) => {
 // WebSocket server ready
 wss.on('connection', (ws) => {
   console.log('Frontend connected to WebSocket');
+
+  // Send the message history to the new client
+  messageHistory.forEach((message) => {
+    ws.send(JSON.stringify(message));
+  });
+
+
   ws.on('message', (message) => {
     console.log('Received from frontend:', message);
     // Handle incoming messages from the frontend if needed
